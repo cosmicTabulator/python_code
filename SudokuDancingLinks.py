@@ -84,7 +84,7 @@ def checkCell(k):
       return (mult(xC,yC))
 
 def poss():
-    for k in open:
+    for k in empty:
         for n in numbers:
             if checkSpace(n,k):
                 grid[k] = grid[k] + n
@@ -125,6 +125,17 @@ def reduce(n,k):
     for s in related[k]:
         grid[s] = grid[s].replace(n,"")
         
+def getEmpty():
+    empty = []
+    for k in full:
+        if grid[k] == "0":
+            empty.append(k)
+    poss()
+    
+def wipe():
+    for k in full:
+        grid[k] = "0"
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 indexes = "012345678"
@@ -135,17 +146,25 @@ numbers = "123456789"
 full = mult(indexes,indexes)
 
 #Define the sudoku grid
-grid = {k : 0 for k in mult(indexes,indexes)}
+grid = {k : "0" for k in mult(indexes,indexes)}
 grid.update({"r"+k : fRow(k) for k in indexes})
 grid.update({"c"+k : fCol(k) for k in indexes})
 grid.update({"s"+k : fCel(k) for k in indexes})
 related = {k : (row(k) + col(k) + cel(k)) for k in mult(indexes,indexes)}
-logging.debug(related)
+n = 0
+for k in mult("0",indexes):
+    n+=1
+    grid[k] = str(n)
+getEmpty()
+search()
+logger.debug("Grid")
 logging.debug(grid)
-empty = []
+line = 0
 for n in indexes:
     numbers = ()
     for i in grid["r"+n]:
-        numbers = numbers + (i,)
-    logger.debug(numbers)
-    logger.info("{0} {1} {2} | {3} {4} {5} | {6} {7} {8}".format(numbers))
+        numbers = numbers + (grid[i],)
+    logger.info("{0:9} {1:9} {2:9} | {3:9} {4:9} {5:9} | {6:9} {7:9} {8:9}".format(*numbers))
+    line += 1
+    if (line % 3) == 0:
+        logger.info("")
