@@ -90,8 +90,11 @@ def poss():
                 grid[k] = grid[k] + n
 
 def search():
+    reduced = False
+    logger.debug(empty)
     for k in empty:
         if len(grid[k]) is 1:
+            reduced = True
             reduce(grid[k],k)
             empty.pop(empty.index(k))
         for n in grid[k]:
@@ -100,6 +103,7 @@ def search():
                 if n in grid[r]:
                     isolated = False
             if isolated:
+                reduced = True
                 grid[k] = n
                 reduce(n,k)
                 break
@@ -108,6 +112,7 @@ def search():
                 if n in grid[c]:
                     isolated = False
             if isolated:
+                reduced = True
                 grid[k] = n
                 reduce(n,k)
                 break
@@ -116,25 +121,48 @@ def search():
                 if n in grid[c]:
                     isolated = False
             if isolated:
+                reduced = True
                 grid[k] = n
                 empty.pop(empty.index(k))
                 reduce(n,k)
                 break
+    return reduced
 
 def reduce(n,k):
     for s in related[k]:
         grid[s] = grid[s].replace(n,"")
         
 def getEmpty():
-    empty = []
+    empty.clear()
     for k in full:
-        if grid[k] == "0":
+        if grid[k] == "":
             empty.append(k)
     poss()
     
 def wipe():
     for k in full:
-        grid[k] = "0"
+        grid[k] = ""
+
+def pick():
+    k = random.choice(empty)
+    logger.debug(k)
+    n = random.choice(grid[k])
+    logger.debug(n)
+    grid[k] = n
+    search()
+
+def getChosen():
+    chosen.clear()
+    for k in grid:
+        if len(grid[k]) == 1:
+            chosen.append(k)
+
+def remove():
+    k = random.choice(chosen)
+    removed.append([k, grid[k]])
+    grid[k] = ''
+    chosen.pop(chosen.index(k))
+    logger.debug("Removed " + str(k))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -144,19 +172,50 @@ indexC2 = "345"
 indexC3 = "678"
 numbers = "123456789"
 full = mult(indexes,indexes)
+empty = []
+chosen = []
+removed = []
 
 #Define the sudoku grid
-grid = {k : "0" for k in mult(indexes,indexes)}
+grid = {k : "" for k in mult(indexes,indexes)}
 grid.update({"r"+k : fRow(k) for k in indexes})
 grid.update({"c"+k : fCol(k) for k in indexes})
 grid.update({"s"+k : fCel(k) for k in indexes})
 related = {k : (row(k) + col(k) + cel(k)) for k in mult(indexes,indexes)}
 n = 0
-for k in mult("0",indexes):
-    n+=1
-    grid[k] = str(n)
 getEmpty()
-search()
+while len(empty) > 0:
+    pick()
+    for k in grid:
+        if grid[k] == '':
+            logger.debug("Restarted")
+            wipe()
+            getEmpty()
+            break
+
+# t = random.randint(5,10)
+# r = 0
+# while r < t:
+#     logger.debug("r=" + str(r))
+#     getChosen()
+#     remove()
+#     notSolved = True
+#     getEmpty()
+#     while(notSolved):
+#         notSolved = search()
+#         logger.debug("Searching")
+#     for k in grid:
+#         if grid[k] == '':
+#             logger.debug("No Solution")
+#             n = removed[-1][1]
+#             s = removed[-1][0]
+#             grid[s] = n
+#             removed.pop(-1)
+#             logger.debug("Readded "+str(s))
+#             chosen.append(s)
+#             break
+#     r = len(removed)
+
 logger.debug("Grid")
 logging.debug(grid)
 line = 0
