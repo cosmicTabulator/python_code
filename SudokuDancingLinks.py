@@ -10,7 +10,12 @@ Created on Tue Oct 25 11:33:57 2016
 import random
 import logging
 import copy
+import sys
+import time
+start1 = time.time()
 logger = logging.getLogger()
+
+logger.setLevel(logging.ERROR)
 
 def row(k):
     m = mult(indexes,k[1])
@@ -92,7 +97,7 @@ def poss(table):
 
 def search(table):
     reduced = False
-    logger.debug(empty)
+    #logger.debug(empty)
     for k in empty:
         if len(table[k]) is 1:
             reduced = True
@@ -136,7 +141,7 @@ def reduce(n,k,table):
 def getEmpty(table):
     empty.clear()
     for k in full:
-        if table[k] == "":
+        if (table[k] == "") or len(table[k]) > 1:
             empty.append(k)
     poss(table)
     
@@ -144,44 +149,74 @@ def wipe(table):
     for k in full:
         table[k] = ""
 
-def pick():
-    k = random.choice(empty)
-    logger.debug(k)
-    n = random.choice(grid[k])
-    logger.debug(n)
-    grid[k] = n
-    search(grid)
-
 def getChosen(table):
     chosen.clear()
     for k in table:
         if len(table[k]) == 1:
             chosen.append(k)
 
-def remove(table):
-    k = random.choice(chosen)
-    removed.append([k, table[k]])
-    table[k] = ''
-    chosen.pop(chosen.index(k))
-    logger.debug("Removed " + str(k))
+def choose(table,k):
+    i = 0
+    n = 0
+    l = table[k]
+    table[k] = l[0]
+    while(solve(table) == False):
+        i += 1
+        try:
+            table[k] = l[i]
+        except:
+            logger.debug("No Solution")
+            return False
+    return True
 
-def isSolvable(table):
+def solve(table):
+    while(search(table)):
+        logger.debug("Searching...")
+    for k in grid:
+        if grid[k] == "":
+            logger.debug("No Solution")
+            return False
+        if len(grid[k]) > 1:
+            if choose(table, k) == False:
+                return False
+    return True
+
+def isSolvable(tableIn):
+    table = copy.deepcopy(tableIn)
     getEmpty(table)
     poss(table)
+    ticks = 0
     while(search(table)):
-        search(table)
+        ticks += 1
+    logger.debug("Took " + str(ticks) + " ticks")
     for k in table:
-        if k[0] is not ("r" or "c" or "s"):
+        if k[0] is not ('r' or 'c' or 's'):
             if table[k] == "":
                 logger.debug("No Poss on " + k)
                 return False
             if len(table[k]) > 1:
                 logger.debug("Still Left on" + k)
                 return False
-        return True
+    return True
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+def loading():
+    global l
+    l+=1
+    if l > 4:
+        l = 1
+    if l == 1:
+        print('|')
+        return
+    if l == 2:
+        print('/')
+        return
+    if l == 3:
+        print('-')
+        return
+    if l == 4:
+        print('\\')
+        return
+
 indexes = "012345678"
 indexC1 = "012"
 indexC2 = "345"
@@ -190,7 +225,6 @@ numbers = "123456789"
 full = mult(indexes,indexes)
 empty = []
 chosen = []
-removed = []
 
 #Define the sudoku grid
 grid = {k : "" for k in mult(indexes,indexes)}
@@ -200,40 +234,55 @@ grid = {k : "" for k in mult(indexes,indexes)}
 related = {k : (row(k) + col(k) + cel(k)) for k in mult(indexes,indexes)}
 n = 0
 getEmpty(grid)
+numberEmpty = 0
+times = 0
+l = 0
 while len(empty) > 0:
-    pick()
-    for k in grid:
-        if grid[k] == '':
-            logger.debug("Restarted")
-            wipe(grid)
+    k = random.choice(empty)
+    logger.debug(k)
+    n = random.choice(grid[k])
+    backup = copy.deepcopy(grid)
+    logger.debug(n)
+    grid[k] = n
+    t = 0
+    loading()
+    while(search(grid)):
+        t += 1
+        logger.debug(str(t) + " Ticks")
+    for e in grid:
+        if grid[e] == '':
+            if times > 3:
+                logger.debug("Restarted")
+                wipe(grid)
+                getEmpty(grid)
+                break
+            if len(empty) == numberEmpty:
+                times += 1
+                logger.debug("Repeat")
+            numberEmpty = len(empty)
+            logger.debug("Backtracked")
+            grid = copy.deepcopy(backup)
             getEmpty(grid)
+            poss(grid)
+            logger.debug(str(len(empty)) + " are Empty")
             break
-
-# t = random.randint(5,10)
-# r = 0
-# while r < t:
-#     logger.debug("r=" + str(r))
-#     getChosen()
-#     remove()
-#     notSolved = True
-#     getEmpty()
-#     while(notSolved):
-#         notSolved = search()
-#         logger.debug("Searching")
-#     for k in grid:
-#         if grid[k] == '':
-#             logger.debug("No Solution")
-#             n = removed[-1][1]
-#             s = removed[-1][0]
-#             grid[s] = n
-#             removed.pop(-1)
-#             logger.debug("Readded "+str(s))
-#             chosen.append(s)
+#==============================================================================
+#             logger.debug("Restarted")
+#             wipe(grid)
+#             getEmpty(grid)
 #             break
-#     r = len(removed)
-
+#==============================================================================
+#==============================================================================
+#     if(solve(grid) == False):
+#              logger.debug("Backtracked")
+#              grid = copy.deepcopy(backup)
+#              getEmpty(grid)
+#              poss(grid)
+#              break
+#==============================================================================
+        
 logger.debug("Grid")
-logging.debug(grid)
+logger.debug(grid)
 line = 0
 for x in indexes:
     numbers = ()
@@ -247,26 +296,52 @@ for x in indexes:
 unsolved = copy.deepcopy(grid)
 template = copy.deepcopy(grid)
 logger.debug(isSolvable(unsolved))
+if isSolvable(grid) == False:
+    sys.exit()
+    
+remove = 0
 
+end1 = time.time()
+
+while(remove < 30):
+    remove = int(input("Number of given numbers:"))
+    
+start2 = time.time()    
+    
+remove = 81 - remove
 r = 0
-while r < 40:
+while r < remove:
     getChosen(unsolved)
     k = random.choice(chosen)
     n = template[k]
     template[k] = ""
     unsolved = copy.deepcopy(template)
+    loading()
     if(isSolvable(unsolved)):
-        unsolved = copy.deepcopy(template)
+        logger.debug(True)
         chosen.pop(chosen.index(k))
         r += 1
+        logger.debug("R = " + str(r))
     else:
+        logger.debug(False)
         template[k] = n
 
 for x in indexes:
     numbers = ()
     for y in indexes:
         numbers = numbers + (unsolved[x+y],)
-    logger.info("{0:9} {1:9} {2:9} | {3:9} {4:9} {5:9} | {6:9} {7:9} {8:9}".format(*numbers))
+    print("{0:1} {1:1} {2:1} | {3:1} {4:1} {5:1} | {6:1} {7:1} {8:1}".format(*numbers))
     line += 1
-    if (line % 3) == 0:
-        logger.info("")
+    if ((line % 3) == 0):
+        print("------+-------+------")
+        
+end2 = time.time()
+first = str(end1 - start1)
+last = str(end2 - start2)
+elapsed = float(first) + float(last)
+minutes = str(elapsed // 60)
+rseconds = str(elapsed % 60)
+logger.debug(elapsed)
+logger.debug('Took ' + minutes + ' minutes and ' + rseconds + ' seconds')
+logger.debug('First: ' + first)
+logger.debug('Last: ' + last)
