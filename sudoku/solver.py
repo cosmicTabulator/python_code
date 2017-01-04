@@ -23,7 +23,7 @@ def mult(list1,list2):
 start1 = time.time()
 start2 = 0
 logger = logging.getLogger("Solver")
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 ## Start Main Code ##
 #Establish indexes for the sudoku grid and create the grid using these
 #Define lists to contain empty spaces and completed spaces
@@ -103,71 +103,96 @@ def checkSpace(n,k,table):
     else:
         return True
 
+#Fills up the table with all possible, valid answers for each yet unsolved space
 def poss(table):
     for k in empty:
         for n in numbers:
             if checkSpace(n,k,table):
                 table[k] = table[k] + n
 
+#Looks through the table for any solutions
 def search(table):
     reduced = False
+    #Goes through all the empty or unsolved spaces
     for k in empty:
+        #If an 'unsolved' space currently has only one possible option
         if len(table[k]) is 1:
             reduced = True
+            #Update all it's neighbors possibilities
             reduce(table[k],k,table)
+            #Remove it from the list of unsolved spaces
             empty.pop(empty.index(k))
+        #Look through the other possible solutions of neighbor spaces
+        #If this space has the only instance of a particular number in its possible solutions,
+        #That number must be its solution
         for n in table[k]:
+            #First, assume this number is a unique instance
             isolated = True
+            #Search through this space's row for other instances
             for r in row(k):
+                #When we find one, mark that it's not unique
                 if n in table[r]:
                     isolated = False
+                    break
+            #If we found no other instances
             if isolated:
+                #Use that number as this space's solution
                 reduced = True
                 table[k] = n
                 reduce(n,k,table)
                 break
+            #Reset and repeat for the column
             isolated = True
             for c in col(k):
                 if n in table[c]:
                     isolated = False
+                    break
             if isolated:
                 reduced = True
                 table[k] = n
                 reduce(n,k,table)
                 break
+            #And the cell
             isolated = True
             for c in cel(k):
                 if n in table[c]:
                     isolated = False
+                    break
             if isolated:
                 reduced = True
                 table[k] = n
                 empty.pop(empty.index(k))
                 reduce(n,k,table)
                 break
+    #Return whether or not we were able to solve at least one space
     return reduced
 
+#Eliminate possibilities from a space's neighbors based on a found solution
 def reduce(n,k,table):
     for s in related[k]:
         table[s] = table[s].replace(n,"")
-        
+
+#Wipes the list of empty, or unsolved, spaces and compliles a new one based off of the current table
 def getEmpty(table):
     empty.clear()
     for k in full:
         if (table[k] == "") or len(table[k]) > 1:
             empty.append(k)
     poss(table)
-    
+
+#Clears the table
 def wipe():
     for k in full:
         grid[k] = ""
 
+#Wipes the list of chosen, or solved, spaces and complies a new one based off of the current table
 def getChosen(table):
     chosen.clear()
     for k in table:
         if len(table[k]) == 1:
             chosen.append(k)
 
+#Solves the imput table to determine whether or not it has exactly one solution
 def isSolvable(tableIn):
     table = copy.deepcopy(tableIn)
     getEmpty(table)
@@ -185,24 +210,6 @@ def isSolvable(tableIn):
                 logger.debug("Still Left on" + k)
                 return False
     return True
-
-def loading():
-    global l
-    l+=1
-    if l > 4:
-        l = 1
-    if l == 1:
-        print('|')
-        return
-    if l == 2:
-        print('/')
-        return
-    if l == 3:
-        print('-')
-        return
-    if l == 4:
-        print('\\')
-        return
 
 #Fill the list of empty spaces from the current sudoku grid
 def generate():
@@ -222,7 +229,6 @@ def generate():
         logger.debug(n)
         grid[k] = n
         t = 0
-        loading()
         #Solve the grid as much as possible based on the new number
         while(search(grid)):
             t += 1
@@ -271,8 +277,7 @@ def generate():
             logger.info("")
     
     end1 = time.time()
-    
-    #Ask for the number of provided spaces, make sure they're between 30 and 81
+
 def unsolve(remove):
         
     start2 = time.time() 
@@ -293,7 +298,6 @@ def unsolve(remove):
         n = template[k]
         template[k] = ""
         unsolved = copy.deepcopy(template)
-        loading()
         #If the puzzle still has a solution (that can be arrived at without guessing)
         if(isSolvable(unsolved)):
             #Increment our counter
@@ -306,24 +310,12 @@ def unsolve(remove):
             logger.debug(False)
             logger.debug("R = " + str(r))
             template[k] = n
-            
-    #Print the new, unsolved puzzle to the console
-    line = 0
-    print(" ------- ------- -------")
-    for x in indexes:
-        numbers = ()
-        for y in indexes:
-            numbers = numbers + (unsolved[x+y],)
-        print("| {0:1} {1:1} {2:1} | {3:1} {4:1} {5:1} | {6:1} {7:1} {8:1} |".format(*numbers))
-        line += 1
-        if ((line % 3) == 0 and line != 9):
-            print(" -------+-------+-------")
-    print(" ------- ------- -------")
           
     #Debug code to track the time the program takes to run
     end2 = time.time()
     return unsolved
 
+#Prints out the latest runtime stats to the debug console
 def stats():
     
     first = str(end1 - start1)
@@ -331,7 +323,7 @@ def stats():
     elapsed = float(first) + float(last)
     minutes = str(elapsed // 60)
     rseconds = str(elapsed % 60)
-    logger.debug(elapsed)
-    logger.debug('Took ' + minutes + ' minutes and ' + rseconds + ' seconds')
-    logger.debug('First: ' + first)
-    logger.debug('Last: ' + last)
+    logger.info(elapsed)
+    logger.info('Took ' + minutes + ' minutes and ' + rseconds + ' seconds')
+    logger.info('Creating: ' + first)
+    logger.info('Unsolving: ' + last)

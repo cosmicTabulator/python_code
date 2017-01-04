@@ -9,95 +9,93 @@ import tkinter
 import solver
 import logging
 
-#Rewrite using .grid()
-
+#Create a logging mechanism
 logger = logging.getLogger("Gui")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
+#Has the solver create a solved sudoku problem and cleans the canvas
 def getProblem():
+    #Clear the canvas
+    d.delete("all")
+    #Create the box lines
+    d.create_line(100,0,100,300)
+    d.create_line(200,0,200,300)
+    d.create_line(0,100,300,100)
+    d.create_line(0,200,300,200)
+    #Reset the solver
     solver.wipe()
+    #Create a new solved puzzle
     solver.generate()
-    make()
+    #Reveal the create Button
+    b.grid()
+    #Ask the user
+    t["text"] = "Please enter the number of given clues you would like"
 
-def make():
-    b = tkinter.Button(root,text = "Create")
-    b["command"] = getValue
-    b.pack(side = "bottom")
-
+#Retreives the number of givens from the user
 def getValue():
     value = 0
     try:
         value = int(e.get())
+        #If the entered number exceeds reasonable bounds, tell them
         if value < 30 or value > 80:
             t["text"] = "Please enter a number between 30 and 81"
+        #Otherwise, 'unsolve' the before created problem and display it
         else:
             unsolved = solver.unsolve(value)
             logger.debug("Returned")
             display(unsolved)
+            t["text"] = ""
+    #If the user entered a non-number, tell them
     except:
         t["text"] = "Please Enter a number"
     return
 
+#Display the unsolved problem on the canvas
 def display(u):
-    line = 0
-    l = 0
-    logger.debug("Entered")
     logger.debug(u)
-    d[l]["text"] = " ------- ------- -------"
-    l += 1
+    #Iterates through the unsolved puzzle, drawing text on the canvas to match
     for x in solver.indexes:
-        logger.debug("Line " + str(x))
-        numbers = ()
+        logger.debug("x:" + x)
         for y in solver.indexes:
-            numbers = numbers + (u[x+y],)
-            logger.debug("Y " + str(y))
-        logger.debug(numbers)
-        for x in range(len(numbers)):
-            if numbers[x] == "":
-                numbers[x] == "_"
-        logger.debug(numbers)
-        text = "| {0:1} {1:1} {2:1} | {3:1} {4:1} {5:1} | {6:1} {7:1} {8:1} |".format(*numbers)
-        logger.debug("Built")
-        d[l]["text"] = text
-        logger.debug("Printed Line " + str(x))
-        line += 1
-        l += 1
-        if (line % 3) == 0 and line != 9:
-            d[l]["text"] = " -------+-------+-------"
-            l += 1
-    logger.debug("Printed?")
-    d[l]["text"] = " ------- ------- -------"
-    for l in range(len(d)):
-        d[l].pack()
-        logger.debug(d[l])
+            logger.debug("y:" + y)
+            d.create_text((int(x)+1)*30, (int(y)+1)*30, text = u[x+y])
+            logger.debug(u[x+y])
+    #Hides the create button again
+    b.grid_remove()
 
+#Create a master window for the GUI
 root = tkinter.Tk()
 
-root.wm_minsize(width = 500, height = 400)
-root.wm_maxsize(width = 500, height = 600)
-
+#Create a Create Puzzle button and bind it to the getProblem function
 c = tkinter.Button(root, text = "Create a Puzzle", command = getProblem, width = 15)
-c.pack(side = "top")
-s = tkinter.Button(root, text = "Solve a Puzzle", command = root.destroy, width = 15)
-s.pack(side = "top")
+c.grid(columnspan = 13)
 
+#Create an empty text space for later
 t = tkinter.Label(root)
-t.pack()
+t.grid(columnspan = 13)
 
-p = tkinter.Label(root, text = "123|456|789")
-p.pack()
-
+#Create an entery box
 e = tkinter.Entry(root)
-e.pack()
+e.grid(columnspan = 13)
 
+#Create a quit button to close the window
 q = tkinter.Button(root, text = "Quit", command = root.destroy)
-q.pack()
+q.grid(columnspan = 13)
 
-d = [tkinter.Label(root, text = "|", width = 25) for x in range(13)]
-for l in range(len(d)):
-    d[l]["text"] = "| 1 2 3 | 4 5 6 | 7 8 9 |"
-    d[l].pack()
-    logger.debug(d[l])
+#Create a canvas to draw the unsolved puzzle on
+d = tkinter.Canvas(root, width = 300, height = 300)
+d.grid(columnspan = 13)
+#Create the box lines for the puzzle
+d.create_line(100,0,100,300)
+d.create_line(200,0,200,300)
+d.create_line(0,100,300,100)
+d.create_line(0,200,300,200)
 
-while True:
-    root.mainloop()
+#Create and hide the create button
+b = tkinter.Button(root,text = "Create")
+b["command"] = getValue
+b.grid(columnspan = 13)
+b.grid_remove()
+
+#Run the GUI
+root.mainloop()
