@@ -9,7 +9,7 @@ from turtle import *
 
 directionsOut = ''
 directionsBase = 'FA'
-n = 8
+n = 12
 l = 5
 
 def iterate(n):
@@ -47,7 +47,6 @@ t.speed(100)
 iterate(n)
 draw()
 t.hideturtle()
-t.done()
 screen.exitonclick()
 print(directionsBase)
 

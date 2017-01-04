@@ -1,0 +1,39 @@
+import logging
+logger = logging.getLogger()
+logging.basicConfig(level = logging.ERROR)
+n = 8
+buffer = (n-1)
+l = ['@']
+for i in range(buffer):
+    l.append('_')
+    l.insert(0, '_')
+w = []
+for i in range(n):
+    l.append('_')
+    l.insert(0, '_')
+    print(l)
+    logger.debug("Line")
+    logger.debug(l)
+    logger.debug("Begin Scanning")
+    for q in range(len(l)-2):
+        s = l[q:(q+3)]
+        logger.debug(s)
+        if s == ['_','_','@']:
+            w.append('@')
+        if s == ['_','@','_']:
+            w.append('@')
+        if s == ['@','_','_']:
+            w.append('@')
+        if s == ['_','@','@']:
+            w.append('@')
+        if s == ['@','_','@']:
+            w.append('_')
+        if s == ['@','@','_']:
+            w.append('_')
+        if s == ['@','@','@']:
+            w.append('_')
+        if s == ['_','_','_']:
+            w.append('_')
+
+    l = w
+    w = []
