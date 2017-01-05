@@ -271,10 +271,10 @@ def generate():
         numbers = ()
         for y in indexes:
             numbers = numbers + (grid[x+y],)
-        logger.info("{0:9} {1:9} {2:9} | {3:9} {4:9} {5:9} | {6:9} {7:9} {8:9}".format(*numbers))
+        logger.debug("{0:9} {1:9} {2:9} | {3:9} {4:9} {5:9} | {6:9} {7:9} {8:9}".format(*numbers))
         line += 1
         if (line % 3) == 0:
-            logger.info("")
+            logger.debug("")
     
     end1 = time.time()
 

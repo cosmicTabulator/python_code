@@ -20,7 +20,6 @@ def generate():
 
     for x in range(8):
         g[x]["text"] = str(int(l[x]))
-        g[x].pack()
 
 def vary(base):
     base = base + (base * (random.randint(-5,5)/10))
@@ -45,21 +44,21 @@ logger.debug(code)
 
 root = tkinter.Tk()
 
-root.wm_minsize(width = 500, height = 400)
-root.wm_maxsize(width = 500, height = 600)
-
 b = tkinter.Button(root, text = "Generate Grist Drops", command = generate)
-b.pack()
+b.grid(columnspan = 2)
 q = tkinter.Button(root, text = "Quit", command = root.destroy)
-q.pack(side = "bottom")
+q.grid(row = 13, columnspan = 2)
 c = tkinter.Button(root, text = "New Captcha Code", command = makeCode)
-c.pack()
+c.grid(row = 3,columnspan = 2)
 
 d = tkinter.Label(root)
-d.pack()
+d.grid(row = 4, columnspan = 2)
 
 g = [tkinter.Label(root) for x in range(8)]
 for x in range(8):
-    g[x].pack()
+    g[x].grid(row = x+5, sticky = 'W')
+    
+s = tkinter.Scale(root, from_=1,to = 8,orient = 'horizontal')
+s.grid(row = 5)
 
 root.mainloop()
