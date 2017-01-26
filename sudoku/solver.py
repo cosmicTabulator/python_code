@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 25 11:33:57 2016
+Created on Tue Oct 25 11:11:11 2016
 
 @author: Graham Cooke
 """
 
-#PS Future self: remember to comment (;
 import random
 import logging
 import copy
